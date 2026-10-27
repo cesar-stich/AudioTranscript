@@ -33,6 +33,7 @@ import tkinter as tk
 import nucleo
 
 ATAJO = os.environ.get("AUDIOTRANSCRIPT_ATAJO", "insert")  # Ins, arriba a la derecha junto a F12
+TECLAS = {"insert": 0x2D, "f24": 0x87}  # códigos virtuales de Windows (f24 sirve para pruebas)
 PREFERENCIAS = os.path.join(CARPETA_APP, "preferencias.json")
 LIBERAR_MODELO_TRAS = 10 * 60  # segundos sin usar antes de soltar la memoria de la GPU
 MODOS = {
@@ -208,18 +209,26 @@ class Agente:
         self.lotes = None
         self.carga = threading.Lock()
         self.ultimo_uso = 0
-        self.ultimo_atajo = 0
         self.ocultar_en = None
         self.mensaje = ""
         self.flotante = Flotante(raiz, self)
         os.makedirs(nucleo.AUDIOS, exist_ok=True)
 
-        import keyboard
-
-        # suppress: Ins ya no hace su función normal (sobrescribir en Word); ahora es el botón de grabar
-        keyboard.add_hotkey(ATAJO, lambda: self.eventos.put(("atajo", None)), suppress=True)
+        threading.Thread(target=self.escuchar_atajo, daemon=True).start()
         raiz.after(100, self.procesar_eventos)
         raiz.after(60_000, self.revisar_modelo)
+
+    def escuchar_atajo(self):
+        # Atajo global oficial de Windows (RegisterHotKey). Un "hook" de teclado no sirve: Windows lo quita
+        # en silencio si tarda en responder, y eso pasa al prender la PC. Ins deja de hacer su función normal.
+        user32 = ctypes.windll.user32
+        if not user32.RegisterHotKey(None, 1, 0x4000, TECLAS[ATAJO]):  # MOD_NOREPEAT: mantenerla no repite
+            self.eventos.put(("sin_atajo", None))
+            return
+        msg = ctypes.wintypes.MSG()
+        while user32.GetMessageW(ctypes.byref(msg), None, 0, 0) > 0:
+            if msg.message == 0x0312:  # WM_HOTKEY
+                self.eventos.put(("atajo", None))
 
     # --- modelo (se carga solo al usarlo y se suelta si no se usa) ----------
     def preparar_modelo(self):
@@ -339,11 +348,9 @@ class Agente:
     def procesar_eventos(self):
         while not self.eventos.empty():
             tipo, dato = self.eventos.get()
-            if tipo == "atajo":
-                # Con suppress la tecla a veces llega dos veces por pulsación: se ignoran repeticiones en menos de 1 s
-                if time.time() - self.ultimo_atajo < 1:
-                    continue
-                self.ultimo_atajo = time.time()
+            if tipo == "sin_atajo":
+                self.avisar("error", "Otra app ya está usando la tecla Ins. Ciérrala y vuelve a abrir AudioTranscript.")
+            elif tipo == "atajo":
                 if self.estado == "libre":
                     self.abrir_menu()
                 elif self.estado == "eligiendo":

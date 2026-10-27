@@ -1,7 +1,6 @@
 faster-whisper>=1.2,<2
 av>=15,<16
 PyAudioWPatch>=0.2.12
-keyboard>=0.13.5
 yt-dlp[default]
 deno>=2
 requests>=2.31

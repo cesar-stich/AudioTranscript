@@ -110,7 +110,7 @@ No. El micrófono solo se abre si eliges **Reunión en vivo** o lo prendes tú d
 <details>
 <summary><b>La tecla Ins ya no hace lo que hacía antes</b></summary>
 
-Mientras AudioTranscript esté activo, `Ins` es el botón de grabar en todos los programas (su función original era el modo "sobrescribir" de Word). Si quieres otra tecla, cambia `ATAJO` al inicio de `agente.pyw` en la carpeta de instalación.
+Mientras AudioTranscript esté activo, `Ins` es el botón de grabar en todos los programas (su función original era el modo "sobrescribir" de Word). Si quieres otra tecla, cambia `ATAJO` (y su código en `TECLAS`) al inicio de `agente.pyw` en la carpeta de instalación.
 </details>
 
 <details>
@@ -146,7 +146,7 @@ Borra la carpeta `%LOCALAPPDATA%\Programs\AudioTranscript`, el ícono del escrit
 | `instalar.py` | Instalador que llama `instalar.bat` |
 | `instalador/instalador.py` | Fuente de `Instalar-AudioTranscript.exe`: instala Python si falta, baja el repo y ejecuta `instalar.py`. Se compila con `pyinstaller --onefile --icon icono.ico --name Instalar-AudioTranscript instalador/instalador.py` |
 
-Construido con [faster-whisper](https://github.com/SYSTRAN/faster-whisper), [yt-dlp](https://github.com/yt-dlp/yt-dlp), [PyAudioWPatch](https://github.com/s0d3s/PyAudioWPatch) y [keyboard](https://github.com/boppreh/keyboard).
+Construido con [faster-whisper](https://github.com/SYSTRAN/faster-whisper), [yt-dlp](https://github.com/yt-dlp/yt-dlp) y [PyAudioWPatch](https://github.com/s0d3s/PyAudioWPatch).
 
 ## Licencia
 
