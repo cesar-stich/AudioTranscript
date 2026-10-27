@@ -1,0 +1,7 @@
+# Nada personal se sube: transcripciones, audios, registros ni preferencias
+transcripciones/
+*.wav
+*.log
+preferencias.json
+__pycache__/
+*.pyc
