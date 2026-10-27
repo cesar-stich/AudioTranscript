@@ -96,8 +96,11 @@ def main():
             acceso_directo(os.path.join(carpeta_especial(carpeta), "AudioTranscript.lnk"), pythonw,
                            "AudioTranscript.pyw", a.destino, "Graba y transcribe gratis")
         print("      Ícono en el escritorio y en el menú Inicio.")
-        respuesta = input("\n      ¿Quieres que la tecla Ins funcione siempre, desde que prendes la PC? (S/N): ")
-        if respuesta.strip().lower().startswith("s"):
+        try:
+            respuesta = input("\n      ¿Quieres que la tecla Ins funcione siempre, desde que prendes la PC? (S/N): ")
+        except EOFError:
+            respuesta = ""
+        if respuesta.strip().lstrip("﻿").lower().startswith("s"):
             acceso_directo(os.path.join(carpeta_especial("Startup"), "AudioTranscript (tecla Ins).lnk"), pythonw,
                            "agente.pyw", a.destino, "Tecla Ins: grabar y transcribir")
             print("      Listo: la tecla Ins estará activa cada vez que prendas la PC.")

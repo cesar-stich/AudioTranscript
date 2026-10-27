@@ -3,5 +3,7 @@ transcripciones/
 *.wav
 *.log
 preferencias.json
+instalador/build/
+instalador/dist/
 __pycache__/
 *.pyc

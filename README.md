@@ -9,6 +9,12 @@
   Sin límites de uso, sin suscripciones y sin que tu audio salga de tu computadora.
 </p>
 
+<p align="center">
+  <a href="https://github.com/cesar-stich/AudioTranscript/releases/latest/download/Instalar-AudioTranscript.exe">
+    <img src="https://img.shields.io/badge/⬇%20%20Descargar%20instalador-Windows%2010%20%2F%2011-0f6cbd?style=for-the-badge" alt="Descargar instalador" height="44">
+  </a>
+</p>
+
 ---
 
 ## ¿Qué es?
@@ -62,21 +68,24 @@ Si detecta que casi no hay voz hablada (por ejemplo, canto sobre música), vuelv
 
 ## Instalación
 
-### Requisitos
-- **Windows 10 u 11**
-- **[Python 3.10 o más nuevo](https://www.python.org/downloads/)** — al instalarlo marca la casilla **"Add python.exe to PATH"**
-- Unos **3 GB libres** (librerías + modelo)
-- **Recomendado:** tarjeta gráfica **NVIDIA**. Sin ella también funciona, usando el procesador, pero más lento.
+### Con un clic (recomendado)
+1. **[⬇ Descarga `Instalar-AudioTranscript.exe`](https://github.com/cesar-stich/AudioTranscript/releases/latest/download/Instalar-AudioTranscript.exe)** (8 MB).
+2. Ábrelo con **doble clic**. Si Windows muestra **"Windows protegió su PC"**, haz clic en **Más información → Ejecutar de todas formas** (aparece con cualquier programa que no está firmado con un certificado de pago).
+3. Espera unos minutos. El instalador hace todo solo:
+   - Instala **Python** si no lo tienes (solo para tu usuario, sin pedirte nada).
+   - Baja la **última versión** de AudioTranscript.
+   - Instala las librerías y, si tienes tarjeta **NVIDIA**, la aceleración por GPU.
+   - Descarga el modelo **Whisper** (~1.6 GB, una sola vez).
+   - Crea el ícono en el **escritorio** y en el **menú Inicio**.
+4. Al final te pregunta si quieres que la tecla **`Ins`** funcione siempre desde que prendes la PC. Escribe **S** y Enter.
 
-### Pasos
-1. **[Descarga el ZIP](https://github.com/cesar-stich/AudioTranscript/archive/refs/heads/main.zip)** (o botón verde **Code → Download ZIP**) y descomprímelo.
-2. Haz **doble clic en `instalar.bat`**.
-   El instalador baja las librerías, detecta tu tarjeta NVIDIA, descarga el modelo Whisper (~1.6 GB, una sola vez) y crea el ícono en el escritorio y en el menú Inicio.
-3. Al final te pregunta si quieres que la tecla **`Ins`** funcione siempre desde que prendes la PC. Responde **S** si quieres.
+¡Listo! Presiona **`Ins`** para grabar, o abre **AudioTranscript** desde el escritorio.
 
-¡Listo! Abre **AudioTranscript** desde el escritorio, o presiona **`Ins`**.
+**Requisitos:** Windows 10 u 11, internet durante la instalación (~3 GB) y unos 3 GB libres. **Recomendado:** tarjeta gráfica **NVIDIA**; sin ella también funciona, usando el procesador, pero más lento.
 
-> Si Windows muestra *"Windows protegió su PC"* al abrir `instalar.bat`, haz clic en **Más información → Ejecutar de todas formas**. Pasa con cualquier archivo descargado de internet que no está firmado.
+### Manual (si ya tienes Python)
+1. **[Descarga el ZIP](https://github.com/cesar-stich/AudioTranscript/archive/refs/heads/main.zip)** y descomprímelo.
+2. Doble clic en **`instalar.bat`**.
 
 ## Preguntas frecuentes
 
@@ -135,6 +144,7 @@ Borra la carpeta `%LOCALAPPDATA%\Programs\AudioTranscript`, el ícono del escrit
 | `nucleo.py` | Lo común: grabación (audio de la PC por WASAPI loopback + micrófono, alineados y mezclados) y transcripción |
 | `transcribir.py` | Versión por línea de comandos: `python transcribir.py grabar` o `python transcribir.py archivo.mp4` |
 | `instalar.py` | Instalador que llama `instalar.bat` |
+| `instalador/instalador.py` | Fuente de `Instalar-AudioTranscript.exe`: instala Python si falta, baja el repo y ejecuta `instalar.py`. Se compila con `pyinstaller --onefile --icon icono.ico --name Instalar-AudioTranscript instalador/instalador.py` |
 
 Construido con [faster-whisper](https://github.com/SYSTRAN/faster-whisper), [yt-dlp](https://github.com/yt-dlp/yt-dlp), [PyAudioWPatch](https://github.com/s0d3s/PyAudioWPatch) y [keyboard](https://github.com/boppreh/keyboard).
 
