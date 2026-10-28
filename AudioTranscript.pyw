@@ -109,6 +109,19 @@ def bajar_video(url, avisar, clave=None):
         if d["status"] == "downloading" and total:
             avisar(d["downloaded_bytes"] / total * 100)
 
+    class Registro:  # guarda los avisos de yt-dlp: la causa real (p. ej. el bloqueo 429 de YouTube) viene ahí
+        def __init__(self):
+            self.avisos = []
+
+        def debug(self, m):
+            pass
+
+        def warning(self, m):
+            self.avisos.append(m)
+
+        info, error = debug, warning
+
+    registro = Registro()
     opciones = {
         # Solo audio si existe; si no, el video más liviano con sonido conocido, la cámara en Zoom ("view") o el normal
         "format": "bestaudio[ext=m4a]/bestaudio/worst[acodec!=none]/view/best",
@@ -116,6 +129,7 @@ def bajar_video(url, avisar, clave=None):
         "windowsfilenames": True, "noplaylist": True,
         "quiet": True, "no_warnings": True, "noprogress": True,
         "progress_hooks": [gancho],
+        "logger": registro,
     }
     if clave:
         opciones["videopassword"] = clave
@@ -129,9 +143,17 @@ def bajar_video(url, avisar, clave=None):
             info = ydl.extract_info(url, download=True)
             return ydl.prepare_filename(info)
     except yt_dlp.utils.DownloadError as e:
-        texto = str(e)
+        texto = "\n".join([str(e), *registro.avisos])
         if re.search(r"video-password|wrong pass", texto, re.I):
             raise NecesitaClave("Código incorrecto." if clave else "")
+        if re.search(r"HTTP Error 429|Too Many Requests|not a bot|unusual traffic", texto, re.I):
+            raise RuntimeError("YouTube bloqueó por un rato las descargas desde tu internet "
+                               "(detectó muchas seguidas). No es culpa del video.\n\n"
+                               "Suele levantarse solo en unas horas. Mientras tanto: ponle play al video "
+                               "y grábalo con la tecla Ins → Video.")
+        if re.search(r"Video unavailable|This video is private|has been removed", texto, re.I):
+            raise RuntimeError("YouTube dice que ese video no está disponible: es privado, se borró "
+                               "o está bloqueado en tu país.")
         if re.search(r"logged-in|log in|login|sign in|cookies|private|HTTP Error 40[13]", texto, re.I):
             raise RuntimeError("Ese video no es público: la página pide iniciar sesión.\n\n"
                                "Ponle play y usa ● Grabar audio del PC.")
@@ -342,6 +364,7 @@ class App:
         self.ocupado = True
         self.habilitar(False)
         self.segmentos = []
+        self.parrafo = ""
         self.lista.selection_clear(0, "end")
         self.texto.delete("1.0", "end")
         self.progreso["value"] = 0
@@ -408,7 +431,7 @@ class App:
     def texto_actual(self):
         if self.con_tiempos.get():
             return "\n".join(f"[{hora(t)}] {x}" for t, x in self.segmentos)
-        return " ".join(x for _, x in self.segmentos)
+        return nucleo.en_parrafos(x for _, x in self.segmentos)
 
     def refrescar_texto(self):
         if self.segmentos:
@@ -416,6 +439,7 @@ class App:
             self.texto.insert("1.0", self.texto_actual())
 
     def procesar_eventos(self):
+        hay_texto_nuevo = False
         while not self.eventos.empty():
             tipo, dato = self.eventos.get()
             if tipo == "listo":
@@ -448,12 +472,20 @@ class App:
             elif tipo == "segmento":
                 inicio, frase, duracion = dato
                 self.segmentos.append((inicio, frase))
-                self.texto.insert("end", f"[{hora(inicio)}] {frase}\n" if self.con_tiempos.get() else frase + " ")
-                self.texto.see("end")
+                if self.con_tiempos.get():
+                    self.texto.insert("end", f"[{hora(inicio)}] {frase}\n")
+                else:
+                    self.parrafo = f"{self.parrafo} {frase}" if self.parrafo else frase
+                    fin = nucleo.cierra_parrafo(self.parrafo, frase)
+                    self.texto.insert("end", frase + ("\n\n" if fin else " "))
+                    if fin:
+                        self.parrafo = ""
+                hay_texto_nuevo = True
                 self.progreso["value"] = min(100, inicio / max(duracion, 1) * 100)
                 self.estado.set(f"Transcribiendo... {hora(inicio)} / {hora(duracion)}")
             elif tipo == "reintento":
                 self.segmentos = []
+                self.parrafo = ""
                 self.texto.delete("1.0", "end")
                 self.progreso["value"] = 0
                 self.estado.set("Casi no detecté voz hablada (¿música?). Transcribiendo todo el audio sin filtro...")
@@ -478,6 +510,8 @@ class App:
                 self.habilitar(self.modelo is not None)
                 self.estado.set("Ocurrió un error.")
                 messagebox.showerror("AudioTranscript", dato[-1500:])
+        if hay_texto_nuevo:  # bajar el scroll una vez por tanda de frases, no por cada una
+            self.texto.see("end")
         self.raiz.after(100, self.procesar_eventos)
 
 

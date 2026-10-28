@@ -150,12 +150,30 @@ def transcribir(lotes, audio, idioma, al_segmento, al_reintento):
     return duracion
 
 
+def cierra_parrafo(parrafo, frase, largo=600):
+    """¿Termina aquí el párrafo? Al pasar ~600 letras en un fin de oración (o ~1800 sí o sí)."""
+    return len(parrafo) >= largo and frase.rstrip().endswith((".", "?", "!", "…")) or len(parrafo) >= largo * 3
+
+
+def en_parrafos(frases):
+    # Horas de texto en una sola línea congelan la ventana (Tk redibuja la línea entera) y cuestan leerse
+    parrafos, actual = [], ""
+    for x in frases:
+        actual = f"{actual} {x}" if actual else x
+        if cierra_parrafo(actual, x):
+            parrafos.append(actual)
+            actual = ""
+    if actual:
+        parrafos.append(actual)
+    return "\n\n".join(parrafos)
+
+
 def guardar(nombre, segmentos):
     """Guarda <nombre>.txt y <nombre>_tiempos.txt en el historial y devuelve el texto limpio."""
     if os.path.splitext(nombre)[1].lower() in (".mp4", ".m4a", ".mov", ".mkv", ".webm", ".mp3", ".wav"):
         nombre = os.path.splitext(nombre)[0]  # títulos de Drive/OneDrive traen la extensión: "reunion.mp4.mp4"
     base = os.path.join(CARPETA, nombre)
-    texto = " ".join(x for _, x in segmentos)
+    texto = en_parrafos(x for _, x in segmentos)
     with open(base + ".txt", "w", encoding="utf-8") as f:
         f.write(texto)
     with open(base + "_tiempos.txt", "w", encoding="utf-8") as f:
